@@ -11,7 +11,6 @@ import (
 )
 
 const Version = "0.1.0"
-const extension = ".tmpl"
 
 func usageAndExit(s string) {
 	fmt.Fprintf(os.Stderr, "!! %s\n", s)
