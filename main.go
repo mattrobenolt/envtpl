@@ -30,7 +30,7 @@ func main() {
 		usageAndExit("missing [template]")
 	}
 	input := args[0]
-	if input[len(input)-4:] != ".tpl" {
+	if len(input) < 4 || input[len(input)-4:] != ".tpl" {
 		usageAndExit("[template] does not end with .tpl")
 	}
 	t, err := template.ParseFiles(input)
