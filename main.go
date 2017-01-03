@@ -10,13 +10,15 @@ import (
 	"text/template"
 )
 
-const Version = "0.1.0"
+const Version = "0.2.0"
 
-func usageAndExit(s string) {
-	fmt.Fprintf(os.Stderr, "!! %s\n", s)
+func usageAndExit(s string, code int) {
+	if s != "" {
+		fmt.Fprintf(os.Stderr, "!! %s\n", s)
+	}
 	fmt.Fprint(os.Stderr, "usage: envtpl [template]\n")
 	fmt.Fprintf(os.Stderr, "%s version: %s (%s on %s/%s; %s)\n", os.Args[0], Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.Compiler)
-	os.Exit(1)
+	os.Exit(code)
 }
 
 func init() {
@@ -27,15 +29,18 @@ func init() {
 func main() {
 	args := os.Args[1:]
 	if len(args) == 0 {
-		usageAndExit("missing [template]")
+		usageAndExit("missing [template]", 1)
 	}
 	input := args[0]
+	if input == "--help" {
+		usageAndExit("", 0)
+	}
 	if len(input) < 4 || input[len(input)-4:] != ".tpl" {
-		usageAndExit("[template] does not end with .tpl")
+		usageAndExit("[template] does not end with .tpl", 1)
 	}
 	t, err := template.ParseFiles(input)
 	if err != nil {
-		usageAndExit(err.Error())
+		usageAndExit(err.Error(), 1)
 	}
 	var b bytes.Buffer
 	err = t.Option("missingkey=zero").Execute(&b, getEnvironMap())
