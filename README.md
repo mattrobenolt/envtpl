@@ -8,7 +8,7 @@ $ envtpl something.conf.tpl
 Add to your `Dockerfile`:
 
 ```dockerfile
-ENV ENVTPL_VERSION 0.1.0
+ENV ENVTPL_VERSION 0.2.0
 RUN set -x \
     && apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
     && dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')" \
