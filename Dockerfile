@@ -1,4 +1,4 @@
-FROM golang:1.8
+FROM golang:1.10
 
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
