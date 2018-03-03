@@ -1,5 +1,7 @@
 package main
 
+import "flag"
+
 import (
 	"bytes"
 	"fmt"
@@ -10,13 +12,15 @@ import (
 	"text/template"
 )
 
-const Version = "0.2.0"
+const Version = "0.3.0"
 
 func usageAndExit(s string, code int) {
 	if s != "" {
 		fmt.Fprintf(os.Stderr, "!! %s\n", s)
 	}
-	fmt.Fprint(os.Stderr, "usage: envtpl [template]\n")
+	fmt.Fprint(os.Stderr, "usage: envtpl [options] [template]\n")
+	fmt.Fprint(os.Stderr, "options:\n")
+	flag.PrintDefaults()
 	fmt.Fprintf(os.Stderr, "%s version: %s (%s on %s/%s; %s)\n", os.Args[0], Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.Compiler)
 	os.Exit(code)
 }
@@ -27,17 +31,36 @@ func init() {
 }
 
 func main() {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		usageAndExit("missing [template]", 1)
-	}
-	input := args[0]
-	if input == "--help" {
+	keepTemplate := flag.Bool("keep-template", false, "Keep the template file instead of deleting it")
+	showHelp := flag.Bool("help", false, "Show this help")
+	flag.Parse()
+
+	if *showHelp {
 		usageAndExit("", 0)
 	}
-	if len(input) < 4 || input[len(input)-4:] != ".tpl" {
-		usageAndExit("[template] does not end with .tpl", 1)
+
+	files := flag.Args()
+
+	if len(files) == 0 {
+		usageAndExit("missing [template]", 1)
 	}
+
+	checkFilenames(files)
+
+	for _, file := range files {
+		renderTemplate(file, *keepTemplate)
+	}
+}
+
+func checkFilenames(files []string) {
+	for _, file := range files {
+		if len(file) < 4 || file[len(file)-4:] != ".tpl" {
+			usageAndExit(fmt.Sprintf("%q does not end with .tpl", file), 1)
+		}
+	}
+}
+
+func renderTemplate(input string, keepTemplate bool) {
 	t, err := template.ParseFiles(input)
 	if err != nil {
 		usageAndExit(err.Error(), 1)
@@ -49,7 +72,9 @@ func main() {
 		os.Exit(1)
 	}
 	ioutil.WriteFile(input[:len(input)-4], b.Bytes(), 0644)
-	os.Remove(input)
+	if !keepTemplate {
+		os.Remove(input)
+	}
 }
 
 func getEnvironMap() map[string]string {
