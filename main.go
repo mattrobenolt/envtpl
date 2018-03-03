@@ -16,7 +16,7 @@ func usageAndExit(s string, code int) {
 	if s != "" {
 		fmt.Fprintf(os.Stderr, "!! %s\n", s)
 	}
-	fmt.Fprint(os.Stderr, "usage: envtpl [template]\n")
+	fmt.Fprint(os.Stderr, "usage: envtpl [--keep-template] [template]\n")
 	fmt.Fprintf(os.Stderr, "%s version: %s (%s on %s/%s; %s)\n", os.Args[0], Version, runtime.Version(), runtime.GOOS, runtime.GOARCH, runtime.Compiler)
 	os.Exit(code)
 }
@@ -28,13 +28,22 @@ func init() {
 
 func main() {
 	args := os.Args[1:]
-	if len(args) == 0 {
-		usageAndExit("missing [template]", 1)
-	}
-	input := args[0]
-	if input == "--help" {
+	keepTemplate := false
+	if args[0] == "--help" {
 		usageAndExit("", 0)
 	}
+
+	iInput := 0
+	if args[0] == "--keep-template" {
+		keepTemplate = true
+		iInput = 1
+	}
+
+	if len(args) == iInput {
+		usageAndExit("missing [template]", 1)
+	}
+	input := args[iInput]
+
 	if len(input) < 4 || input[len(input)-4:] != ".tpl" {
 		usageAndExit("[template] does not end with .tpl", 1)
 	}
@@ -49,7 +58,9 @@ func main() {
 		os.Exit(1)
 	}
 	ioutil.WriteFile(input[:len(input)-4], b.Bytes(), 0644)
-	os.Remove(input)
+	if !keepTemplate {
+		os.Remove(input)
+	}
 }
 
 func getEnvironMap() map[string]string {
